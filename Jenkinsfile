@@ -4,20 +4,37 @@ pipeline {
     environment {
         AWS_REGION = "ap-south-1"
         CLUSTER_NAME = "eks-demo-cluster"
+        TERRAFORM_VERSION = "1.7.5"
     }
 
     stages {
 
         stage('Clone Repo') {
             steps {
-                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/nil-2025/eks-terraform-jenkins.git']])
+                git 'https://github.com/nil-2025/eks-terraform-jenkins.git'
+            }
+        }
+
+        stage('Setup Terraform') {
+            steps {
+                dir('terraform') {
+                    // Download Terraform if not already present
+                    sh '''
+                    if [ ! -f terraform ]; then
+                        curl -LO https://releases.hashicorp.com/terraform/${TERRAFORM_VERSION}/terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+                        unzip terraform_${TERRAFORM_VERSION}_linux_amd64.zip
+                        chmod +x terraform
+                    fi
+                    ./terraform version
+                    '''
+                }
             }
         }
 
         stage('Terraform Init') {
             steps {
                 dir('terraform') {
-                    sh 'terraform init'
+                    sh './terraform init'
                 }
             }
         }
@@ -25,7 +42,7 @@ pipeline {
         stage('Terraform Plan') {
             steps {
                 dir('terraform') {
-                    sh 'terraform plan'
+                    sh './terraform plan'
                 }
             }
         }
@@ -33,7 +50,7 @@ pipeline {
         stage('Terraform Apply') {
             steps {
                 dir('terraform') {
-                    sh 'terraform apply -auto-approve'
+                    sh './terraform apply -auto-approve'
                 }
             }
         }
