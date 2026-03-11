@@ -11,7 +11,7 @@ pipeline {
 
         stage('Clone Repo') {
             steps {
-                git 'https://github.com/nil-2025/eks-terraform-jenkins.git'
+                checkout scmGit(branches: [[name: '*/main']], extensions: [], userRemoteConfigs: [[url: 'https://github.com/nil-2025/eks-terraform-jenkins.git']])
             }
         }
 
